@@ -1,0 +1,50 @@
+---
+title: "DAVIS-ALLISON-ADA-HOMEWORK-04"
+author: "Allison Davis and Caitlin Leslie"
+date: "April 12, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#### ** This homework is a collaboration of myself, Allison Davis, and Caitlin Leslie. **
+
+## Bootstrapping to estimate standard errors and CIs for linear models
+
+  * Part 1: create linear model of log-home range by log-female body mass and report coefficients (slope and intercept).
+```{r}
+library(curl)
+f <- curl("https://raw.githubusercontent.com/difiore/ADA-2019/master/KamilarAndCooperData.csv")
+d <- read.csv(f, header = TRUE, sep = ",", stringsAsFactors = TRUE)
+head(d)
+
+d$home <- log(d$HomeRange_km2)
+d$mass <- log(d$Body_mass_female_mean)
+d <- d[complete.cases(d[ ,c("home", "mass")]), ]
+head(d)
+
+
+mod <- lm(data = d, home~mass)
+(betas <- coef(mod))
+```
+    - Slope: 1.036
+    - Intercept: -9.441
+    
+  * Part 2: Use bootstrapping to sample data 1000 times, fitting the same model and calculating the appropriate coefficients, to create sampling distribution around each beta. Plot histogram.
+
+```{r}
+sim <- NULL  
+n <- length(d$home)
+for (i in 1:1000) {
+    sim[i] <- lm(data=(sample(d, n, replace = TRUE)), home~mass)
+}
+hist(sim, xlab = "Log-mass of Females", main = "Distribution of Home Ranges", breaks = 20)
+abline(v = mean(sim), col = "blue")  
+abline(v = mean(x), col = "red")  
+ci <- normalCI(x, 0.95) 
+abline(v = ci[1], col = "red") 
+abline(v = ci[2], col = "red") 
+
+```
